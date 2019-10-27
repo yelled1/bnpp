@@ -1,0 +1,32 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[requires]
+python_version = "3.7.3"
+
+[packages]
+pandas = "==0.24.2"
+numpy = "*"
+scipy = "*"
+scikit-learn = "*"
+python-dotenv = "*"
+tqdm = "*"
+argparse = "*"
+dedupe = "*"
+fuzzywuzzy = {extras = ["speedup"]}
+nltk = "*"
+spacy = "*"
+plotly = "*"
+
+[dev-packages]
+pylint = "*"
+"autopep8" = "*"
+pudb = "*"
+neovim = "*"
+
+[scripts]
+lint = "pylint --rcfile=../.pylintrc production"
+lint-fix = "autopep8 --in-place --aggressive --aggressive --recursive production utils dev ../schema"
+runprod = "python production/runprod.py"
