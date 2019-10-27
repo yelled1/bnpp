@@ -1,0 +1,5 @@
+Arch/
+# ignore csv
+*.csv
+*.pyo
+*.docx
