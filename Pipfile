@@ -9,16 +9,12 @@ python_version = "3.7.3"
 [packages]
 pandas = "==0.24.2"
 numpy = "*"
-scipy = "*"
-scikit-learn = "*"
 python-dotenv = "*"
 tqdm = "*"
 argparse = "*"
-dedupe = "*"
-fuzzywuzzy = {extras = ["speedup"]}
-nltk = "*"
-spacy = "*"
 plotly = "*"
+dash = "==1.4.1"
+dash-daq = "==0.2.1"
 
 [dev-packages]
 pylint = "*"
@@ -29,4 +25,3 @@ neovim = "*"
 [scripts]
 lint = "pylint --rcfile=../.pylintrc production"
 lint-fix = "autopep8 --in-place --aggressive --aggressive --recursive production utils dev ../schema"
-runprod = "python production/runprod.py"

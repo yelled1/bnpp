@@ -42,11 +42,13 @@ def combined_list_count(df, unique_people):
   return [sender_recipient_counts(name, sender_num_dict, recipient_num_dict)
                  for name in unique_people]
   
-def sorted_out_df(list_counts):
-  """ return final sorted outfile for this project """
-  out_column_name = ['person', 'sent', 'received']
+def u_sorted_out_df(list_counts, sort=True):
+  """ return final either sorted/unsorted out DataFrame for this project """
+  out_column_name = ['person', 'sent', 'recieved']
   df = pd.DataFrame(list_counts, columns=out_column_name)
-  return df.sort_values(by='sent', ascending=False)
+  if sort:
+    return df.sort_values(by='sent', ascending=False)
+  return df
 
 def main(argv):
   #inputfile, outputfile = './enron-event-history-all.csv', './enron-email-count.csv'
@@ -70,6 +72,9 @@ def main(argv):
 
   # grabs input file & turn it into pandas df
   email_df = read_input_csv(inputfile)
+  # save this file for graph processing
+  with open(r"Arch/email_df.pkl", "wb") as fw: pickle.dump(email_df, fw)
+
   # merge the list into a flattened send_rec_pair in email_df
   merged_df = pd.DataFrame(list(itertools.chain.from_iterable(email_df.send_rec_pair)),
                            columns=['time', 'sender', 'recipient'])
@@ -80,7 +85,7 @@ def main(argv):
   list_counts = combined_list_count(merged_df, unique_persons)
 
   # convert to list to df, sort, & output to csv
-  out_df = sorted_out_df(list_counts)
+  out_df = u_sorted_out_df(list_counts)
   out_df.to_csv(outputfile, index=False, sep='\t')
 
 if __name__ == "__main__":

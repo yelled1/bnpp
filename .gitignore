@@ -3,3 +3,5 @@ Arch/
 *.csv
 *.pyo
 *.docx
+*.pkl
+*.bk*
