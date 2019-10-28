@@ -3,18 +3,20 @@ import in_file_name from enron-event-history-all & grab in_column_names
 to produce a sorted (by sent) csv file: person, sent, recieved
 """
 import sys
-import itertools
+import itertools as it
 import time
 import getopt
 import pandas as pd
 from tqdm import tqdm
 
 def split_recipients(row, ):
-  "splits multiple recipients into pairs of list of [[sender & recipient], ...]"
+  """ splits multiple recipients into pairs of list of
+    [[sender & recipient], ..., [sender & recipient]] """
   return [[row.time, row.sender, recipient] for recipient in row.recipients.split('|')]
 
 def read_input_csv(ifile):
-  " read input_csv_file "
+  """ read in input_csv_file & return DataFrame. This usually would b inside
+      main func, but repase of recipients is time consuming """
   in_column_names = ['time', 'msgId', 'sender', 'recipients'] #, 'topic', 'msg_mode']
   df = pd.read_csv(ifile, names=in_column_names, usecols=range(len(in_column_names)))
   # add column that contains list of recipients
@@ -59,7 +61,6 @@ def main(argv):
     opts, args = getopt.getopt(argv, "hi:o:", ["ifile=", "ofile="])
   except getopt.GetoptError:
     print('python summarize_enron.py -i <inputfile> -o <outputfile>')
-    #python summarize_enron.py -i ./enron-event-history-all.csv -o ./enron-email-count.csv
     sys.exit(2)
   for opt, arg in opts:
     if opt == '-h':
@@ -76,8 +77,9 @@ def main(argv):
   email_df = read_input_csv(inputfile)
 
   # merge the list into a flattened send_rec_pair in email_df
-  merged_df = pd.DataFrame(list(itertools.chain.from_iterable(email_df.send_rec_pair)),
-                           columns=['time', 'sender', 'recipient'])
+  merged_df = pd.DataFrame(list(
+    it.chain.from_iterable(email_df.send_rec_pair)),
+    columns=['time', 'sender', 'recipient'])
 
   # find unique persons & one can restrict people here
   unique_persons = uniques_persons_set(merged_df)
@@ -89,6 +91,4 @@ def main(argv):
   out_df.to_csv(outputfile, index=False, sep='\t')
 
 if __name__ == "__main__":
-  print(time.ctime())
   main(sys.argv[1:])
-  print(time.ctime())
