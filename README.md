@@ -1,4 +1,9 @@
 # bnpp
+
+ ## N.B.: Dash/plotly saves png files to convert to bmp perform on bash shell:
+ ```$ for file in *.png; do convert "$file" "${file%.png}".bmp; done``` 
+ I chose NOT to send bmp files as those are more than 10x times bigger than png counterparts
+ 
 OVERVIEW
 ========
 The main goal is to provide a simple project for Enron email visualization in terms of sends & recieved count
