@@ -19,10 +19,17 @@ from summarize_enron import (combined_list_count,
                              u_sorted_out_df,
                              read_input_csv)
 
-def convert_datetime(utime):
+def convert_datetime(utime, pd_ts=False, tz='US/Eastern'):
   """ converts unix timestamp to datetime format"""
-  return dt.datetime.fromtimestamp(utime/1000.).date()
+  if pd_ts:
+    return pd.Timestamp(utime/1000., unit='s', tz=tz)
+  return dt.datetime.fromtimestamp(utime/1000.)
 
+def specific_person_ts_count(in_df, p_name, send_rec='sender'):
+  """ get either send or recieved count as times series """
+  in_df = in_df[(in_df[send_rec] == p_name)]
+  in_df['Date'] = pd.to_datetime(in_df.time.map(lambda x: convert_datetime(x, True))) - pd.to_timedelta(7, unit='d')
+  return in_df.groupby(pd.Grouper(key='Date', freq='W-MON'))[send_rec].count().reset_index().sort_values('Date')
 
 pkl_file = r"./email_df.pkl"
 exists = os.path.isfile(pkl_file)
@@ -51,6 +58,16 @@ min_date = convert_datetime(merged_df.time.min())
 max_date = convert_datetime(merged_df.time.max())
 beg_date = min_date
 end_date = max_date
+
+ts_dict_by_person = {}
+#for tgt_name in top_persons:
+#  for send_recv in ('sender', 'recipient'):
+print('1####')
+person = top_persons[0]
+ts_df = specific_person_ts_count(merged_df, person, 'sender')
+print('2####')
+val2_x = ts_df.Date
+val2_y = ts_df.sender
 
 # time slices by restricting merged_df[merged_df.time <= utime]
 out_df = u_sorted_out_df(
@@ -88,20 +105,30 @@ app.layout = html.Div(children=[
       max=2002,
       value=[1998, 2002],
     ),
-
   dcc.Graph(
     id='scatter',
     figure={
       'data':  [go.Scatter(x=values_x, \
                            y=values_y['sends'], \
                            mode='markers')],
-
       'layout': go.Layout(title="Scatter Plot of {} {} {}".format('sends',
                                                                   beg_date,
                                                                   end_date),
                           xaxis={'title':  'Names'},
                           yaxis={'title':  'Freq of {}'.format('sends')},)
-        })])
+        }),
+
+  dcc.Graph(
+    id='bar',
+    figure={
+      'data':  [go.Bar(x=val2_x, y=val2_y,)],
+      'layout': go.Layout(title="Scatter Plot: {} of {}".format('sends', top_persons[0]),
+                          xaxis={'title':  top_persons[0]},
+                          yaxis={'title':  'Freq of {}'.format('sends')},)
+        }),
+  ], style={'rowCount':2}
+)
+
 
 @app.callback(
   output=Output('scatter', 'figure'),
@@ -117,21 +144,22 @@ def update_graphics(yaxis, year_range):
   1: if yaxis chages to either: sender / recieved
   2: if the date range changes by the RangeSlider
   """
-  end_date = dt.datetime(year_range[1], 12, 31).date()
-  out_df = u_sorted_out_df(combined_list_count(merged_df[(merged_df.date >= beg_date)
-                                                         & (merged_df.date <= end_date)],
-                                               top_persons), sort=False)
-  values_y = {'sends': out_df.sent,
-              'recieved': out_df.recieved}
-  values_y = pd.DataFrame(values_y)
+  n_beg_date = dt.datetime(year_range[0], 1, 1)
+  n_end_date = dt.datetime(year_range[1], 12, 31)
+  n_out_df = u_sorted_out_df(combined_list_count(
+    merged_df[(merged_df.date >= n_beg_date) & (merged_df.date <= n_end_date)],
+    top_persons), sort=False)
+  n_values_y = {'sends': n_out_df.sent,
+                'recieved': n_out_df.recieved}
+  n_values_y = pd.DataFrame(n_values_y)
   return {
     # [yaxis]
     'data':[go.Scatter(x=values_x,
-                       y=values_y[yaxis],
+                       y=n_values_y[yaxis],
                        mode='markers',)],
     'layout': go.Layout(title="Scatter Plot of {} {} {}".format(yaxis,
-                                                                beg_date,
-                                                                end_date),
+                                                                n_beg_date,
+                                                                n_end_date),
                         xaxis={'title':  'Names'},
                         yaxis={'title':  'Freq of {}'.format(yaxis)},)
   }
