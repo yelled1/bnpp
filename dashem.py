@@ -62,10 +62,8 @@ end_date = max_date
 ts_dict_by_person = {}
 #for tgt_name in top_persons:
 #  for send_recv in ('sender', 'recipient'):
-print('1####')
 person = top_persons[0]
 ts_df = specific_person_ts_count(merged_df, person, 'sender')
-print('2####')
 val2_x = ts_df.Date
 val2_y = ts_df.sender
 
